@@ -1,0 +1,38 @@
+language: ruby
+
+matrix:
+  include:
+    - env: OSX=10.12
+      os: osx
+      osx_image: xcode8.1
+      rvm: system
+    - env: OSX=10.11
+      os: osx
+      osx_image: xcode7.3
+      rvm: system
+    - env: OSX=10.10
+      os: osx
+      osx_image: xcode6.4
+      rvm: system
+
+before_install:
+  - export HOMEBREW_DEVELOPER="1"
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+      HOMEBREW_REPOSITORY="$(brew --repo)";
+      sudo chown -R "$USER" "$HOMEBREW_REPOSITORY";
+      git -C "$HOMEBREW_REPOSITORY" fetch;
+      git -C "$HOMEBREW_REPOSITORY" reset --hard origin/master;
+    else
+      HOMEBREW_REPOSITORY="$HOME/Homebrew";
+      git clone https://github.com/Homebrew/brew "$HOMEBREW_REPOSITORY";
+      export PATH="$HOMEBREW_REPOSITORY/bin:$PATH";
+      umask 022;
+    fi
+  - HOMEBREW_TAP_DIR="$(brew --repo "$TRAVIS_REPO_SLUG")"
+  - HOMEBREW_TAP_ROOT="$(dirname "$HOMEBREW_TAP_DIR")"
+  - rm -rf "$HOMEBREW_TAP_ROOT"
+  - mkdir -p "$HOMEBREW_TAP_ROOT"
+  - ln -s "$PWD" "$HOMEBREW_TAP_DIR"
+
+script:
+  - brew test-bot
